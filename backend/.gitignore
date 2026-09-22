@@ -24,3 +24,6 @@ coverage.html
 # milvus lite local data
 *.db
 data/
+
+# workdir
+.nemesis/
