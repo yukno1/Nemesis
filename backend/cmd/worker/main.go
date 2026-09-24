@@ -54,14 +54,14 @@ func run() error {
 		return fmt.Errorf("redis: %w", err)
 	}
 
-	mcli, err := infra.NewMilvus(ctx, &cfg.Milvus)
+	vdb, err := infra.NewVectorDB(ctx, cfg)
 	if err != nil {
 		return fmt.Errorf("milvus: %w", err)
 	}
 
 	// RAG 引擎（doc-etl 消费方）
 	gateway := llm.NewGateway(&cfg.LLM)
-	store := vector.NewMilvusStore(mcli)
+	store := vector.NewStore(vdb)
 	repos := repo.New(db)
 
 	// 加密器与 server 同源：模型解析需解密 api_key（缺失会 nil panic）
@@ -77,13 +77,13 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("services: %w", err)
 	}
-	ragEngine := engine.New(gateway, store, repos.KB, &cfg.RAG, cfg.Milvus.Dim)
+	ragEngine := engine.New(gateway, store, repos.KB, &cfg.RAG, vdb.Dim)
 	ragEngine.SetModels(svcs.DefaultEmbedding, svcs.DefaultRerank)
 
 	w := worker.New(rdb, repos, ragEngine, nil, "", &cfg.Worker)
 	// MinIO 可选（本地教学可关闭对象存储，文档内容直传场景）
-	if mc, err := infra.NewMinIO(ctx, &cfg.MinIO); err == nil {
-		w = worker.New(rdb, repos, ragEngine, mc, cfg.MinIO.Bucket, &cfg.Worker)
+	if mc, err := infra.NewObjectStorage(ctx, &cfg.ObjectStorage); err == nil {
+		w = worker.New(rdb, repos, ragEngine, mc, cfg.ObjectStorage.Bucket, &cfg.Worker)
 	}
 
 	observability.LogInfo("nexus-agent worker started",

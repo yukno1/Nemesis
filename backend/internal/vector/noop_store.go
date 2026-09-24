@@ -15,7 +15,7 @@ var ErrDisabled = errors.New("vector store disabled")
 // 使 RAG 自然退化为纯关键词检索（自研 keyword.go），而不是整条链路报错。
 type NoopStore struct{ once sync.Once }
 
-func NewNoopStore() *NoopStore { return &NoopStore{} }
+func newNoopStore() *NoopStore { return &NoopStore{} }
 
 func (s *NoopStore) warn() {
 	s.once.Do(func() {

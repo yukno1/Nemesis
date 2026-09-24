@@ -17,7 +17,7 @@ type MilvusStore struct {
 }
 
 // NewMilvusStore 构造。
-func NewMilvusStore(cli client.Client) *MilvusStore { return &MilvusStore{cli: cli} }
+func newMilvusStore(cli client.Client) *MilvusStore { return &MilvusStore{cli: cli} }
 
 // EnsureCollection 确保知识库/记忆集合存在。
 func (s *MilvusStore) EnsureCollection(ctx context.Context, collection string, dim int) error {

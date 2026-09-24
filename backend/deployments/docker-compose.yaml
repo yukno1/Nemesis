@@ -1,4 +1,4 @@
-# NexusAgent 基础设施编排（td.md §11）
+# minervaAgent 基础设施编排（td.md §11）
 # 分组点亮：core = 最小可运行（Ep 02） / full = 含检索与消息 / obs = 观测栈
 #
 # 用法：
@@ -6,7 +6,7 @@
 #   docker compose --profile full up -d          # + Milvus/Ollama/SearXNG
 #   docker compose --profile obs up -d           # + Jaeger/Prometheus/Grafana
 
-name: nexus-agent
+name: minerva-agent
 
 services:
   # ---- 核心（P0 必需） ----
@@ -14,13 +14,13 @@ services:
     image: postgres:16-alpine
     profiles: [core, full, obs]
     environment:
-      POSTGRES_USER: nexus
-      POSTGRES_PASSWORD: nexus123
-      POSTGRES_DB: nexus_agent
+      POSTGRES_USER: minerva
+      POSTGRES_PASSWORD: minerva123
+      POSTGRES_DB: minerva_agent
     ports: ["5432:5432"]
     volumes: [pgdata:/var/lib/postgresql/data, ./init:/docker-entrypoint-initdb.d:ro]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U nexus"]
+      test: ["CMD-SHELL", "pg_isready -U minerva"]
       interval: 5s
       retries: 10
 
@@ -30,17 +30,51 @@ services:
     ports: ["6380:6379"]
     volumes: [redisdata:/data]
 
-  minio:
-    image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
+  # minio:
+  #   image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
+  #   profiles: [core, full, obs]
+  #   command: server /data --console-address ":9001"
+  #   environment:
+  #     MINIO_ROOT_USER: minioadmin
+  #     MINIO_ROOT_PASSWORD: minioadmin
+  #   ports: ["9000:9000", "9001:9001"]
+  #   volumes: [miniodata:/data]
+  
+  # rustfs:
+  #   image: rustfs/rustfs:latest
+  #   profiles: [core, full, obs]
+  #   command: ["/data"]           # 必选：数据路径，必须是最后一个参数
+  #   environment:
+  #     RUSTFS_ADDRESS: ":9000"
+  #     RUSTFS_CONSOLE_ENABLE: "false"
+  #     RUSTFS_CONSOLE_ADDRESS: "0.0.0.0:9001"
+  #     RUSTFS_ACCESS_KEY: minioadmin # 与 config.yaml 保持一致，就不用改配置，默认值：rustfsadmin
+  #     RUSTFS_SECRET_KEY: minioadmin
+  #   ports: ["127.0.0.1:9000:9000", "127.0.0.1:9001:9001"]
+  #   volumes:
+  #     - rustfsdata:/data
+      # - rustfslogs:/logs # 本地开发不需要，日志走 docker logs 即可
+
+  seaweedfs:
+    image: chrislusf/seaweedfs:latest
     profiles: [core, full, obs]
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    ports: ["9000:9000", "9001:9001"]
-    volumes: [miniodata:/data]
+    command: ["server", "-s3", "-ip.bind=0.0.0.0", "-s3.port=9000", "-dir=/data"] # server -s3 -ip.bind=0.0.0.0 -dir=/data 或 单机极简：注释掉
+    ports: 
+    - "127.0.0.1:9000:9000" # S3 API
+    volumes: 
+      - seaweeddata:/data
 
   # ---- 检索与模型（RAG/MCP 相关集） ----
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333" # grpc api
+      - "6334:6334" # REST api
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    environment:
+      QDRANT__CLUSTER__ENABLED: "false"
+
   etcd: # Milvus 依赖
     image: quay.io/coreos/etcd:v3.5.14
     profiles: [full, obs]
@@ -106,8 +140,12 @@ services:
 volumes:
   pgdata:
   redisdata:
-  miniodata:
+  # miniodata:
+  # rustfsdata:
+  # rustfslogs:
+  seaweeddata:
   milvusdata:
   milvusminiodata:
   ollamadata:
   grafanadata:
+  qdrant_storage:

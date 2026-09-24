@@ -15,7 +15,7 @@ db:
   mode: sqlite # pg / sqlite
 
 sqlite:
-  path: ./.nemesis/nemesis.sqlite
+  path: ./.minerva/minerva.sqlite
 
 pg:
   dsn: postgres://nexus:nexus123@localhost:5432/nexus_agent?sslmode=disable&search_path=public
@@ -28,17 +28,43 @@ redis:
   password: ""
   db: 0
 
+vector:
+  driver: qdrant # milvus | qdrant | off
+  dim: 1024 # bge-m3 维度，两种后端共用
+
 milvus:
   mode: off # remote / lite
   addr: 127.0.0.1:19530
   lite_path: ./data/milvus_lite.db
   dim: 1024 # bge-m3 向量维度
 
-minio:
+qdrant:
+  mode: remote # remote / lite
+  addr: 127.0.0.1:6334 # gRPC（SDK 用这个）
+  rest_addr: 127.0.0.1:6333 # REST（管理/健康检查用，可选）
+  api_key: "" # 本地无需；Qdrant Cloud 才填
+  https: false # Qdrant Cloud 时 true
+
+object_storage:
+  driver: seaweedfs # rustfs | seaweedfs
+  endpoint: 127.0.0.1:9000
+  access_key: minervaadmin
+  secret_key: minervaadmin
+  bucket: minerva-docs
+  use_ssl: false
+
+rustfs:
   endpoint: 127.0.0.1:9000
   access_key: minioadmin
   secret_key: minioadmin
-  bucket: nexus-docs
+  bucket: minerva-docs
+  use_ssl: false
+
+seaweedfs:
+  endpoint: 127.0.0.1:8333
+  access_key: "" # SeaweedFS S3 默认匿名可读写，留空也能通
+  secret_key: ""
+  bucket: minerva-docs
   use_ssl: false
 
 jwt:

@@ -21,8 +21,12 @@ type Config struct {
 	Sqlite        Sqlite        `mapstructure:"sqlite"`
 	PG            PG            `mapstructure:"pg"`
 	Redis         Redis         `mapstructure:"redis"`
+	Vector        Vector        `mapstructure:"vector"`
 	Milvus        Milvus        `mapstructure:"milvus"`
-	MinIO         MinIO         `mapstructure:"minio"`
+	Qdrant        Qdrant        `mapstructure:"qdrant"`
+	ObjectStorage ObjectStorage `mapstructure:"object_storage"`
+	RustFS        RustFS        `mapstructure:"rustfs"`
+	SeaweedFS     SeaweedFS     `mapstructure:"seaweedfs"`
 	JWT           JWT           `mapstructure:"jwt"`
 	SecretKey     string        `mapstructure:"secret_key"`
 	LLM           LLM           `mapstructure:"llm"`
@@ -67,6 +71,12 @@ type Redis struct {
 	DB       int    `mapstructure:"db"`
 }
 
+// Vector 向量库选型（驱动 + 公共参数）。
+type Vector struct {
+	Driver string `mapstructure:"driver"` // milvus / qdrant / off
+	Dim    int    `mapstructure:"dim"`
+}
+
 type Milvus struct {
 	Mode     string `mapstructure:"mode"` // remote / lite
 	Addr     string `mapstructure:"addr"`
@@ -74,7 +84,33 @@ type Milvus struct {
 	Dim      int    `mapstructure:"dim"`
 }
 
-type MinIO struct {
+// Qdrant 向量库连接配置。
+type Qdrant struct {
+	Mode     string `mapstructure:"mode"`      // remote / off
+	Addr     string `mapstructure:"addr"`      // gRPC，如 127.0.0.1:6334
+	RestAddr string `mapstructure:"rest_addr"` // REST，可选
+	APIKey   string `mapstructure:"api_key"`
+	HTTPS    bool   `mapstructure:"https"`
+}
+
+type ObjectStorage struct {
+	Driver    string `mapstructure:"driver"`
+	Endpoint  string `mapstructure:"endpoint"`
+	AccessKey string `mapstructure:"access_key"`
+	SecretKey string `mapstructure:"secret_key"`
+	Bucket    string `mapstructure:"bucket"`
+	UseSSL    bool   `mapstructure:"use_ssl"`
+}
+
+type RustFS struct {
+	Endpoint  string `mapstructure:"endpoint"`
+	AccessKey string `mapstructure:"access_key"`
+	SecretKey string `mapstructure:"secret_key"`
+	Bucket    string `mapstructure:"bucket"`
+	UseSSL    bool   `mapstructure:"use_ssl"`
+}
+
+type SeaweedFS struct {
 	Endpoint  string `mapstructure:"endpoint"`
 	AccessKey string `mapstructure:"access_key"`
 	SecretKey string `mapstructure:"secret_key"`

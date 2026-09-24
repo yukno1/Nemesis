@@ -17,7 +17,7 @@ import (
 // NewSQLite 本地单文件存储（journal WAL + 单写连接）。
 func NewSQLite(ctx context.Context, path string) (*gorm.DB, Dialect, error) {
 	if path == "" {
-		path = "./.nemesis/nemesis.sqlite"
+		path = "./.minerva/minerva.sqlite"
 	}
 	if dir := filepath.Dir(path); dir != "." {
 		if err := os.MkdirAll(dir, 0o755); err != nil {

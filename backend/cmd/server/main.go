@@ -11,6 +11,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -78,26 +79,22 @@ func run() error {
 		return fmt.Errorf("redis: %w", err)
 	}
 
-	mcli, err := infra.NewMilvus(ctx, &cfg.Milvus)
+	vdb, err := infra.NewVectorDB(ctx, cfg)
 	if err != nil {
-		return fmt.Errorf("milvus: %w", err)
+		return fmt.Errorf("vector DB: %w", err)
 	}
-	// 向量库可选：milvus.mode=off 时用空实现降级，核心链路不受影响
-	// var store vector.Store = vector.NewNoopStore()
-	// if mcli != nil {
-	// 	store = vector.NewMilvusStore(mcli)
-	// }
 
-	mio, err := infra.NewMinIO(ctx, &cfg.MinIO)
+	mio, err := infra.NewObjectStorage(ctx, &cfg.ObjectStorage)
 	if err != nil {
 		return fmt.Errorf("minio: %w", err)
 	}
 	// 对象桶不存在则创建（已存在时忽略）
-	if err := mio.MakeBucket(ctx, cfg.MinIO.Bucket, minio.MakeBucketOptions{}); err != nil {
-		if exists, _ := mio.BucketExists(ctx, cfg.MinIO.Bucket); !exists {
+	if err := mio.MakeBucket(ctx, cfg.ObjectStorage.Bucket, minio.MakeBucketOptions{}); err != nil {
+		if exists, _ := mio.BucketExists(ctx, cfg.ObjectStorage.Bucket); !exists {
 			return fmt.Errorf("minio bucket: %w", err)
 		}
 	}
+	log.Printf("object storage: driver=%s endpoint=%s bucket=%s", cfg.ObjectStorage.Driver, cfg.ObjectStorage.Endpoint, cfg.ObjectStorage.Bucket)
 
 	// ===== ④ 安全组件 =====
 	encryptor, err := security.NewEncryptor(cfg.SecretKey)
@@ -108,7 +105,7 @@ func run() error {
 
 	// ===== ⑤ LLM 网关与向量库 =====
 	gateway := llm.NewGateway(&cfg.LLM)
-	store := vector.NewMilvusStore(mcli)
+	store := vector.NewStore(vdb)
 
 	// ===== ⑥ 数据访问与工具系统 =====
 	repos := repo.New(db)
@@ -142,7 +139,7 @@ func run() error {
 	}
 
 	// ===== ⑧ RAG 引擎（注入实时解析函数，改配置无需重启） =====
-	ragEngine := engine.New(gateway, store, repos.KB, &cfg.RAG, cfg.Milvus.Dim)
+	ragEngine := engine.New(gateway, store, repos.KB, &cfg.RAG, vdb.Dim)
 	ragEngine.SetModels(svcs.DefaultEmbedding, svcs.DefaultRerank)
 	svcs.SetRAGEngine(ragEngine)
 
@@ -162,7 +159,7 @@ func run() error {
 	svcs.Memory.SetManager(memoryMgr)
 
 	// ===== ⑪ 对象存储与 kb_search 工具（依赖 RAG 引擎，最后注册） =====
-	svcs.KB.SetMinIO(mio, cfg.MinIO.Bucket)
+	svcs.KB.SetMinIO(mio, cfg.ObjectStorage.Bucket)
 	tool.RegisterKBSearch(reg, kbSearchFunc(svcs, ragEngine))
 
 	// ===== ⑫ Hertz 服务 =====
