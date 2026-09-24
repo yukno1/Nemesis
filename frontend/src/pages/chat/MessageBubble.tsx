@@ -169,7 +169,7 @@ export const MessageBubble = memo(function MessageBubble({
           )
         ) : (
           streaming && (
-            <p className="text-sm text-fog">
+            <p className="inline-flex items-center gap-2 text-sm text-fog">
               <span className="inline-block h-3 w-1.5 animate-pulse bg-lime align-middle" />
               思考中…
             </p>
