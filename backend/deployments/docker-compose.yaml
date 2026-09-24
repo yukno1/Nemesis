@@ -28,7 +28,8 @@ services:
     image: redis:7-alpine
     profiles: [core, full, obs]
     ports: ["6380:6379"]
-    volumes: [redisdata:/data]
+    volumes: 
+    - ../.minerva/storage/redis:/data
 
   # minio:
   #   image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
@@ -52,8 +53,8 @@ services:
   #     RUSTFS_SECRET_KEY: minioadmin
   #   ports: ["127.0.0.1:9000:9000", "127.0.0.1:9001:9001"]
   #   volumes:
-  #     - rustfsdata:/data
-      # - rustfslogs:/logs # 本地开发不需要，日志走 docker logs 即可
+  #     - ../.minerva/storage/rustfs/rustfsdata:/data
+  #     - ../.minerva/storage/rustfs/rustfslogs:/logs 
 
   seaweedfs:
     image: chrislusf/seaweedfs:latest
@@ -62,7 +63,7 @@ services:
     ports: 
     - "127.0.0.1:9000:9000" # S3 API
     volumes: 
-      - seaweeddata:/data
+      - ../.minerva/storage/seaweedfs:/data
 
   # ---- 检索与模型（RAG/MCP 相关集） ----
   qdrant:
@@ -71,7 +72,7 @@ services:
       - "6333:6333" # grpc api
       - "6334:6334" # REST api
     volumes:
-      - qdrant_storage:/qdrant/storage
+      - ../.minerva/storage/qdrant:/qdrant/storage
     environment:
       QDRANT__CLUSTER__ENABLED: "false"
 
@@ -103,12 +104,6 @@ services:
       MINIO_ROOT_PASSWORD: minioadmin
     volumes: [milvusminiodata:/data]
 
-  ollama: # 教学本地模型（local: true 时全流程零外部依赖）
-    image: ollama/ollama:latest
-    profiles: [full]
-    ports: ["11434:11434"]
-    volumes: [ollamadata:/root/.ollama]
-
   searxng: # web_search 工具后端
     image: searxng/searxng:latest
     profiles: [full]
@@ -139,13 +134,7 @@ services:
 
 volumes:
   pgdata:
-  redisdata:
-  # miniodata:
-  # rustfsdata:
-  # rustfslogs:
-  seaweeddata:
   milvusdata:
   milvusminiodata:
-  ollamadata:
   grafanadata:
   qdrant_storage:
