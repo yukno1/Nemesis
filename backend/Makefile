@@ -16,6 +16,8 @@ help:
 
 ## run: 启动 API 服务（开发模式）
 run:
+	$(MAKE) compose-up
+	$(MAKE) migrate
 	go run $(MAIN_PKG)
 
 ## run-worker: 启动异步任务 Worker（文档 ETL / 评估）
