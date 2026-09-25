@@ -3,7 +3,7 @@
  * 数据流：listKBs 一次性拉取（page_size=100）；创建/删除成功后整表刷新。
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
 	Button,
 	Card,
@@ -152,20 +152,25 @@ export function KnowledgeBasesPage() {
 							className="group relative"
 							onClick={() => navigate(`/kbs/${kb.id}`)}
 						>
-							{/* 标题行：名称 + 状态徽标 + 悬浮删除按钮 */}
+							{/* 标题行：名称 + 右侧（状态徽标 + 悬浮删除按钮） */}
 							<div className="mb-2 flex items-start justify-between gap-2">
 								<h3
 									className="min-w-0 truncate text-sm font-semibold text-bone"
 									title={kb.name}
 								>
-									{kb.name}
+									<Link
+										to={`/kbs/${kb.id}`}
+										className="after:absolute after:inset-0 after:content-['']"
+									>
+										{kb.name}
+									</Link>
 								</h3>
-								<div className="flex shrink-0 items-center gap-1.5">
+								<div className="flex shrink-0 items-center gap-2">
 									<StatusBadge status={kb.status} />
-									{/* 悬浮才出现，避免视觉噪音；阻止冒泡避免触发卡片跳转 */}
+									{/* 常驻占位、仅淡入淡出，避免 display 切换引起的布局跳动 */}
 									<button
 										type="button"
-										className="hidden text-xs text-ash transition-colors hover:text-coral group-hover:block"
+										className="relative z-10 invisible text-xs text-ash opacity-0 transition-opacity duration-150 hover:text-coral group-hover:visible group-hover:opacity-100"
 										title="删除知识库"
 										onClick={(e) => {
 											e.stopPropagation();

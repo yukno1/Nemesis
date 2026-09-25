@@ -102,7 +102,7 @@ export function Badge({
 	return (
 		<span
 			className={clsx(
-				"inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium",
+				"inline-flex items-center whitespace-nowrap rounded-full border px-2 py-0.5 text-xs font-medium",
 				TONE_CLASS[tone],
 				className,
 			)}
@@ -200,10 +200,10 @@ export function Card({
 		<div
 			className={clsx(
 				"panel p-4 transition-colors duration-200",
-				onClick && "cursor-pointer hover:border-fog/60",
+				// onClick && "cursor-pointer hover:border-fog/60",
 				className,
 			)}
-			onClick={onClick}
+			// onClick={onClick}
 		>
 			{children}
 		</div>
