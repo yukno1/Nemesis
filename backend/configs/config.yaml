@@ -48,8 +48,8 @@ qdrant:
 object_storage:
   driver: seaweedfs # rustfs | seaweedfs
   endpoint: 127.0.0.1:9000
-  access_key: minervaadmin
-  secret_key: minervaadmin
+  access_key: ""
+  secret_key: ""
   bucket: minerva-docs
   use_ssl: false
 

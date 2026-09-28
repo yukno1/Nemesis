@@ -31,7 +31,7 @@ const (
 //
 // cfg 为 nil 视为关闭，返回 (nil, nil)，由调用方降级；
 // endpoint / 凭证留空时用 RustFS 官方默认值，便于本地一键起环境。
-func NewRustFS(ctx context.Context, cfg *config.RustFS) (*minio.Client, error) {
+func NewRustFS(ctx context.Context, cfg *config.ObjectStorage) (*minio.Client, error) {
 	if cfg == nil {
 		logger.L().Warn("rustfs disabled, object storage features degraded", logger.TraceID("infra"))
 		return nil, nil

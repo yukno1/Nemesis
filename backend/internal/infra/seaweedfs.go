@@ -31,7 +31,7 @@ const defaultSeaweedFSEndpoint = "127.0.0.1:8333"
 //
 // cfg 为 nil 视为关闭，返回 (nil, nil)，由调用方降级；
 // endpoint 留空用 8333 兜底；凭证留空则走匿名（可能只读，见文件头注释）。
-func NewSeaweedFS(ctx context.Context, cfg *config.SeaweedFS) (*minio.Client, error) {
+func NewSeaweedFS(ctx context.Context, cfg *config.ObjectStorage) (*minio.Client, error) {
 	if cfg == nil {
 		logger.L().Warn("seaweedfs disabled, object storage features degraded", logger.TraceID("infra"))
 		return nil, nil

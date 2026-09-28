@@ -25,8 +25,6 @@ type Config struct {
 	Milvus        Milvus        `mapstructure:"milvus"`
 	Qdrant        Qdrant        `mapstructure:"qdrant"`
 	ObjectStorage ObjectStorage `mapstructure:"object_storage"`
-	RustFS        RustFS        `mapstructure:"rustfs"`
-	SeaweedFS     SeaweedFS     `mapstructure:"seaweedfs"`
 	JWT           JWT           `mapstructure:"jwt"`
 	SecretKey     string        `mapstructure:"secret_key"`
 	LLM           LLM           `mapstructure:"llm"`
@@ -95,22 +93,6 @@ type Qdrant struct {
 
 type ObjectStorage struct {
 	Driver    string `mapstructure:"driver"`
-	Endpoint  string `mapstructure:"endpoint"`
-	AccessKey string `mapstructure:"access_key"`
-	SecretKey string `mapstructure:"secret_key"`
-	Bucket    string `mapstructure:"bucket"`
-	UseSSL    bool   `mapstructure:"use_ssl"`
-}
-
-type RustFS struct {
-	Endpoint  string `mapstructure:"endpoint"`
-	AccessKey string `mapstructure:"access_key"`
-	SecretKey string `mapstructure:"secret_key"`
-	Bucket    string `mapstructure:"bucket"`
-	UseSSL    bool   `mapstructure:"use_ssl"`
-}
-
-type SeaweedFS struct {
 	Endpoint  string `mapstructure:"endpoint"`
 	AccessKey string `mapstructure:"access_key"`
 	SecretKey string `mapstructure:"secret_key"`
