@@ -53,19 +53,19 @@ object_storage:
   bucket: minerva-docs
   use_ssl: false
 
-rustfs:
-  endpoint: 127.0.0.1:9000
-  access_key: minioadmin
-  secret_key: minioadmin
-  bucket: minerva-docs
-  use_ssl: false
+# rustfs:
+#   endpoint: 127.0.0.1:9000
+#   access_key: minioadmin
+#   secret_key: minioadmin
+#   bucket: minerva-docs
+#   use_ssl: false
 
-seaweedfs:
-  endpoint: 127.0.0.1:9000
-  access_key: "" # SeaweedFS S3 默认匿名可读写，留空也能通
-  secret_key: ""
-  bucket: minerva-docs
-  use_ssl: false
+# seaweedfs:
+#   endpoint: 127.0.0.1:9000
+#   access_key: "" # SeaweedFS S3 默认匿名可读写，留空也能通
+#   secret_key: ""
+#   bucket: minerva-docs
+#   use_ssl: false
 
 jwt:
   secret: change-me-in-prod # 生产务必更换
