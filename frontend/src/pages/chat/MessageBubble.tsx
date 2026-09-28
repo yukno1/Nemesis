@@ -129,6 +129,8 @@ interface BubbleProps {
 	/** 流式中的打字机光标 */
 	streaming?: boolean;
 	expert?: string;
+	/** false = 不播入场动画（流式→历史的交接帧用，避免重播导致闪屏） */
+	animate?: boolean;
 }
 
 export const MessageBubble = memo(function MessageBubble({
@@ -141,12 +143,16 @@ export const MessageBubble = memo(function MessageBubble({
 	latencyMs,
 	streaming,
 	expert,
+	animate = true,
 }: BubbleProps) {
 	const isUser = author === "user";
 	const rootRef = useRef<HTMLDivElement>(null);
+	// 用 ref 快照：只在挂载那一刻判定，后续 animate 变化不补播动画
+	const animateRef = useRef(animate);
 
 	// 入场动画：仅在挂载时执行一次（流式更新重渲染不会重播）
 	useEffect(() => {
+		if (!animateRef.current) return;
 		const el = rootRef.current;
 		if (el) bubbleIn(el);
 	}, []);
@@ -228,7 +234,14 @@ export const MessageBubble = memo(function MessageBubble({
 });
 
 /** 历史消息 → 气泡 props 适配 */
-export function HistoryBubble({ msg }: { msg: Message }) {
+export function HistoryBubble({
+	msg,
+	animate,
+}: {
+	msg: Message;
+	/** 透传给 MessageBubble：false = 交接帧不播入场动画 */
+	animate?: boolean;
+}) {
 	const isUser = msg.role === "user";
 	return (
 		<MessageBubble
@@ -247,12 +260,19 @@ export function HistoryBubble({ msg }: { msg: Message }) {
 						}
 			}
 			latencyMs={msg.latency_ms}
+			animate={animate}
 		/>
 	);
 }
 
 /** 流式消息 → 气泡 props 适配 */
-export function StreamingBubble({ s }: { s: StreamingMsg }) {
+export function StreamingBubble({
+	s,
+	animate,
+}: {
+	s: StreamingMsg;
+	animate?: boolean;
+}) {
 	return (
 		<MessageBubble
 			author="assistant"
@@ -271,6 +291,7 @@ export function StreamingBubble({ s }: { s: StreamingMsg }) {
 			}
 			streaming={s.status === "streaming"}
 			expert={s.expert}
+			animate={animate}
 		/>
 	);
 }

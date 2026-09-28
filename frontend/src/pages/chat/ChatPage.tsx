@@ -95,11 +95,25 @@ function AgentPanel() {
 
 export function ChatPage() {
 	const { messages, streaming } = useChat();
+	const scrollRef = useRef<HTMLDivElement>(null);
 	const bottomRef = useRef<HTMLDivElement>(null);
+
+	// 交接帧判定：上一帧还在流式、这一帧已落到历史 → 新挂载的气泡不播入场动画
+	const wasStreaming = useRef(false);
+	const handingOff = wasStreaming.current && streaming === null;
+	useEffect(() => {
+		wasStreaming.current = streaming !== null;
+	}, [streaming]);
 
 	// 流式内容变化：滚动到底（打字机跟随）
 	useEffect(() => {
-		bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+		const el = scrollRef.current;
+		if (!el) return;
+		if (streaming) {
+			// 高频 delta 下 smooth 会被反复打断造成抖动，这里直接赋值置底
+			el.scrollTop = el.scrollHeight;
+		} else
+			bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
 	}, [messages.length, streaming?.content, streaming?.tools, streaming?.plan]);
 
 	const hasContent = messages.length > 0 || streaming !== null;
@@ -110,7 +124,10 @@ export function ChatPage() {
 
 			{/* 中间：消息流 */}
 			<div className="flex min-w-0 flex-1 flex-col">
-				<div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-6">
+				<div
+					ref={scrollRef}
+					className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-6"
+				>
 					{!hasContent ? (
 						<div className="flex h-full items-center justify-center">
 							<EmptyState
@@ -122,7 +139,7 @@ export function ChatPage() {
 					) : (
 						<div className="mx-auto w-full max-w-3xl space-y-4">
 							{messages.map((m) => (
-								<HistoryBubble key={m.id} msg={m} />
+								<HistoryBubble key={m.id} msg={m} animate={!handingOff} />
 							))}
 							{streaming?.plan && <PlanCard />}
 							{streaming && <StreamingBubble s={streaming} />}
