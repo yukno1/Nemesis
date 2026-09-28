@@ -38,7 +38,7 @@ func (r *KBRepo) DeleteKB(ctx context.Context, id int64) error {
 // GetKB 详情。
 func (r *KBRepo) GetKB(ctx context.Context, id int64) (*model.KnowledgeBase, error) {
 	var kb model.KnowledgeBase
-	if err := r.db.WithContext(ctx).First(&kb, id).Error; err != nil {
+	if err := r.db.WithContext(ctx).Select(kbSelectWithDocCount).First(&kb, id).Error; err != nil {
 		return nil, err
 	}
 	return &kb, nil
@@ -57,7 +57,7 @@ func (r *KBRepo) ListKBs(ctx context.Context, userID int64, offset, limit int) (
 	if err := q.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
-	err := q.Order("id DESC").Offset(offset).Limit(limit).Find(&list).Error
+	err := q.Select(kbSelectWithDocCount).Order("id DESC").Offset(offset).Limit(limit).Find(&list).Error
 	return list, total, err
 }
 
@@ -244,3 +244,7 @@ func (r *KBRepo) ListChunks(ctx context.Context, docID int64, offset, limit int)
 	err := q.Order("seq ASC").Offset(offset).Limit(limit).Find(&list).Error
 	return list, total, err
 }
+
+// kbSelectWithDocCount KB 查询携带实时文档数（子查询统计，避免冗余计数漂移）。
+const kbSelectWithDocCount = "knowledge_bases.*, " +
+	"(SELECT COUNT(*) FROM documents d WHERE d.kb_id = knowledge_bases.id) AS doc_count"

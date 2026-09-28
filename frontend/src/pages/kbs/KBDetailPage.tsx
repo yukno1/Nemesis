@@ -74,8 +74,12 @@ export function KBDetailPage() {
 	const refreshDocs = useCallback(async () => {
 		setDocsLoading(true);
 		try {
-			const data = await listDocs(kbId, { page: 1, page_size: 100 });
+			const [data, kbData] = await Promise.all([
+				listDocs(kbId, { page: 1, page_size: 100 }),
+				getKB(kbId),
+			]);
 			setDocs(data.list);
+			setKb(kbData);
 		} catch (e) {
 			toast.err(errMsg(e));
 		} finally {
