@@ -92,15 +92,18 @@ func (e *Engine) IndexDocument(ctx context.Context, kb *model.KnowledgeBase, doc
 	// ② 落库：分块先写入 PG（Milvus 主键 = chunk.ID，必须先有 ID）
 	// 页码等定位信息存 Meta JSONB（{"page":3}），引用时回显"第几页"
 	var chunks []model.DocumentChunk
+	seq := 0
 	for _, page := range loaded.Pages {
 		for _, c := range sp.Split(page.Content, page.Page) {
 			chunks = append(chunks, model.DocumentChunk{
 				KBID:       kb.ID,
 				DocumentID: doc.ID,
-				Seq:        c.Seq,
+				Seq:        seq,
 				Content:    c.Content,
+				TokenCount: llm.EstimateTokens(c.Content),
 				Meta:       datatypes.JSON(fmt.Sprintf(`{"page":%d}`, c.Page)),
 			})
+			seq++
 		}
 	}
 	if len(chunks) == 0 {
@@ -149,7 +152,6 @@ func (e *Engine) embedChunks(ctx context.Context, collection string, chunks []mo
 
 		records := make([]vector.Record, 0, len(batchChunks))
 		for j, c := range batchChunks {
-			c.TokenCount = llm.EstimateTokens(c.Content)
 			records = append(records, vector.Record{
 				ID:     c.ID,
 				Vector: vecs[j],
@@ -188,12 +190,12 @@ func (e *Engine) DeleteDocument(ctx context.Context, collection string, docID in
 
 // Ref 检索引用（前端展示"参考来源"）。
 type Ref struct {
-	ChunkID   int64  `json:"chunk_id"`
-	DocumentID int64 `json:"document_id"`
-	Filename  string `json:"filename"`
-	Page      int    `json:"page"`
-	Content   string `json:"content"`
-	Score     float32 `json:"score"`
+	ChunkID    int64   `json:"chunk_id"`
+	DocumentID int64   `json:"document_id"`
+	Filename   string  `json:"filename"`
+	Page       int     `json:"page"`
+	Content    string  `json:"content"`
+	Score      float32 `json:"score"`
 }
 
 // Retrieve 混合检索主流程：稠密 + 关键词 → RRF → (Rerank) → 截断。

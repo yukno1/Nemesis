@@ -423,7 +423,7 @@ export function KBDetailPage() {
 				) : (
 					<div className="space-y-2">
 						{chunks.map((c) => {
-							const page = pageOf(c);
+							// const page = pageOf(c);
 							return (
 								<div
 									key={c.id}
@@ -431,7 +431,7 @@ export function KBDetailPage() {
 								>
 									<div className="mb-1.5 flex items-center gap-3 text-[11px] text-ash">
 										<span className="font-mono text-lime">#{c.seq}</span>
-										{page !== null && <span>第 {page} 页</span>}
+										{/* {page !== null && <span>第 {page} 页</span>} */}
 										<span>{c.token_count} tokens</span>
 									</div>
 									{/* 分块原文：保留换行 */}
