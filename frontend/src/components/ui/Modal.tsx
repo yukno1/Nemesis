@@ -65,9 +65,10 @@ export function Modal({
 		>
 			<div
 				ref={panelRef}
-				className={`panel w-full ${width} max-h-[85vh] overflow-y-auto p-5 shadow-2xl`}
+				className={`panel flex w-full ${width} max-h-[85vh] flex-col p-5 shadow-2xl`}
 			>
-				<div className="mb-4 flex items-center justify-between">
+				{/* 标题栏：固定不随内容滚动 */}
+				<div className="mb-4 flex shrink-0 items-center justify-between">
 					<h2 className="text-base font-semibold text-bone">{title}</h2>
 					<button
 						type="button"
@@ -78,7 +79,8 @@ export function Modal({
 						✕
 					</button>
 				</div>
-				{children}
+				{/* 内容区：独立滚动 */}
+				<div className="min-h-0 flex-1 overflow-y-auto pr-2">{children}</div>
 				{footer && <div className="mt-5 flex justify-end gap-2">{footer}</div>}
 			</div>
 		</div>,
